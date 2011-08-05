@@ -4,9 +4,11 @@ function __autoload($className) {
 }
 class JsonRpcClient {
 	private $_rpcUrl;
+	private $_curlCookie;
 
 	public function __construct($rpcUrl) {
 		$this->_rpcUrl = $rpcUrl;
+		$this->_curlCookie = dirname(__FILE__).DIRECTORY_SEPARATOR.'curl_cookie';
 	}
 	public function __call($name, $arguments) {
 		return $this->call(new RpcRequest($name,$arguments));
@@ -31,10 +33,16 @@ class JsonRpcClient {
 		$curlHandler = curl_init();
 		$curlOptions = array(
 			CURLOPT_URL => $this->_rpcUrl,
-			CURLOPT_POST => true,
+			// cookie stuff
+			CURLOPT_COOKIE => true,
+            CURLOPT_COOKIEFILE => $this->_curlCookie,
+            CURLOPT_COOKIEJAR => $this->_curlCookie,
+			// request specific stuff
 			CURLINFO_CONTENT_TYPE => "application/json",
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_POSTFIELDS => json_encode($rpcBatchArray)
+			CURLOPT_POST => true,
+			CURLOPT_POSTFIELDS => json_encode($rpcBatchArray),
+			CURLOPT_RETURNTRANSFER => true
+
 		);
 		curl_setopt_array($curlHandler,$curlOptions);
 		
