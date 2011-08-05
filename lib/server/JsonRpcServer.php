@@ -1,9 +1,7 @@
 <?php
-include_once("JsonRpcExceptions.php");
-include_once("RpcError.php");
-include_once("RpcResponse.php");
-include_once("JsonRpcService.php");
-
+function __autoload($className) {
+	include_once($className.".php");
+}
 
 class JsonRpcServer {
 	private $_requestText;
@@ -110,7 +108,7 @@ class JsonRpcServer {
 			   && is_string($requestMethod)
 			   && strncmp($reserved = "rpc.",$requestMethod,strlen($reserved)));
 	}
-	private function isMethodAvailable($requestObject) {
+	protected function isMethodAvailable($requestObject) {
 		foreach($this->_listOfCallableServices as $service) {
 			if($needleKey = array_key_exists($requestObject->method, $service->getCallableMethodNames())) {
 				return $this->_listOfCallableServices->get($needleKey);
