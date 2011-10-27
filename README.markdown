@@ -6,8 +6,6 @@ PHP 5.2.6+
  - [ReflectionClass](http://www.php.net/manual/en/class.reflectionclass.php) @ `lib/server/Service`
  - [ReflectionMethod](http://www.php.net/manual/en/class.reflectionmethod.php) @ `lib/server/Service`
  - [Exception](http://www.php.net/manual/en/class.exception.php) @ `lib/server/JsonRpcExceptions`
- - [Countable](http://www.php.net/manual/en/class.countable.php) @ `lib/utils/ObjectList` 
- - [Iterator](http://www.php.net/manual/en/class.iterator.php) @ `lib/utils/ObjectList`
 
 #How do I use the client?
 After you instantiate the `JsonRpcClient` with the server URL, there have two option to send a request. Both method using the `RpcRequest` class @ `lib/client/` which help us to sending a well formatted request. Step by step tuturial soon.
@@ -81,38 +79,40 @@ And if we call accidentally `addd` instead of `add` :
 
 ##Batch request
 ###Sending a request
-You can send more than one request at the same time. In this case you must use `ObjectList` util to collect RpcRequest objects and passing into `callBatch` method
+You can send more than one request at the same time. In this case you must use an array util to collect RpcRequest objects and passing into `callBatch` method
 
 1) No one
 
     $client = new JsonRpcClient("http://localhost/jsonrpc/sample/server/");
-    $listOfCalls = new ObjectList();
 
-    $listOfCalls->add(new RpcRequest("add",array(33,77)));
-    $listOfCalls->add(new RpcRequest("add",array(44,11)));
-    $listOfCalls->add(new RpcRequest("add",array(2,12.3)));
+    $listOfCalls = array();
+
+    array_push($listOfCalls,new RpcRequest("add",array(33,77)));
+    array_push($listOfCalls,new RpcRequest("divide",array(44,11),true));
+    array_push($listOfCalls,new RpcRequest("subtract",array(2,12.3)));
+    array_push($listOfCalls,new RpcRequest("invalidateSession"));
 
     $responseArray = $client->callBatch($listOfCalls);
 
 2) One of them is a notification
 
     $client = new JsonRpcClient("http://localhost/jsonrpc/sample/server/");
-    $listOfCalls = new ObjectList();
+    $listOfCalls = array();
 
-    $listOfCalls->add(new RpcRequest("add",array(33,77)));
-    $listOfCalls->add(new RpcRequest("add",array(44,11),true));
-    $listOfCalls->add(new RpcRequest("add",array(2,12.3)));
+    array_push($listOfCalls,new RpcRequest("add",array(33,77)));
+    array_push($listOfCalls,new RpcRequest("add",array(44,11),true));
+    array_push($listOfCalls,new RpcRequest("add",array(2,12.3)));
 
     $responseArray = $client->callBatch($listOfCalls);
 
 3) All request is notification
 
     $client = new JsonRpcClient("http://localhost/jsonrpc/sample/server/");
-    $listOfCalls = new ObjectList();
+    $listOfCalls = array();
 
-    $listOfCalls->add(new RpcRequest("add",array(33,77),true));
-    $listOfCalls->add(new RpcRequest("add",array(44,11),true));
-    $listOfCalls->add(new RpcRequest("add",array(2,12.3),true));
+    array_push($listOfCalls,new RpcRequest("add",array(33,77),true));
+    array_push($listOfCalls,new RpcRequest("add",array(44,11),true));
+    array_push($listOfCalls,new RpcRequest("add",array(2,12.3),true));
 
     $responseArray = $client->callBatch($listOfCalls);
 
