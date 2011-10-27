@@ -3,8 +3,14 @@
 class JsonRpcService {
 	const ANNOTATION = '@JsonRpcMethod';
 	const REQUEST_LOGIN = 'request_login';
-	
-	public function getCallableMethodNames() {
+
+    public function __construct() {
+        session_start();
+    }
+    public function __destruct() {
+        session_write_close();
+    }
+    public function getCallableMethodNames() {
 		$methodNames = array();
 		$reflection = new ReflectionClass($this);
 		foreach($reflection->getMethods() as $method) {
@@ -28,18 +34,21 @@ class JsonRpcService {
 		}
 		return false;
 	}
-	protected function isAuthenticationRequired(){
-		$annotationVariables = $this->collectedAnnotations();
-		return $annotationVariables[JsonRpcService::REQUEST_LOGIN];
+	public function isAuthenticationRequired($request,$service){
+		$annotationVariables = $this->getAnnotationVariables($request,$service);
+		return (empty($annotationVariables))?false:$annotationVariables[JsonRpcService::REQUEST_LOGIN];
 	}
-	private function getAnnotationVariables($method) {
+	private function getAnnotationVariables($request,$service) {
 		$collectedAnnotations = array();
+		$method = new ReflectionMethod(get_class($service),$request->method);
 		$methodComment = $method->getDocComment();
+
 		$bracketContentStart = strpos($methodComment,'(');
 		$bracketContentEnd = strpos($methodComment,')')-$bracketContentStart-1;
+
 		// () pair not found
 		if(!$bracketContentStart || !$bracketContentEnd) {
-			return false;
+			return $collectedAnnotations;
 		}
 
 		$rawAnnotations = substr($methodComment,$bracketContentStart+1,$bracketContentEnd);
@@ -60,8 +69,20 @@ class JsonRpcService {
 					$collectedAnnotations[$keyValuePair[0]] = $keyValuePair[1];
 				}
 		}
-		return $collectedAnnotations;
+        return $collectedAnnotations;
 	}
-
+	/** @JsonRpcMethod*/
+	public function authenticate($username,$password) {
+		if($username == 'test' && $password == '1234') {
+            $_SESSION['RPC']['authenticated'] = true;
+			return true;
+		} else {
+			return false;
+		}
+	}
+	/** @JsonRpcMethod*/
+	public function invalidateSession() {
+        session_destroy();
+	}
 }
 ?>

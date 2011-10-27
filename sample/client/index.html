@@ -1,0 +1,110 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<script type="text/javascript">
+    function jsonRpc(methodName, parameters, notification) {
+        function request() {
+            if(null == jsonRpc.staticId) {
+                jsonRpc.staticId = 0;
+            }
+            if(null == notification || false == notification) {
+                this.id = jsonRpc.staticId++;
+            }
+            this.method = methodName;
+            this.params = parameters;
+            this.jsonrpc = "2.0";
+        }
+        this.request = new request();
+        
+        this.toJSON = function() {
+            return JSON.stringify(this.request);
+        }
+    }
+
+    function jsonRpcClient(url, jsonRpc) {
+        this.url = url;
+
+        this.call = function(jsonRpc) {
+            return this.callRemoteHost(jsonRpc.toJSON());
+        }
+        this.callRemoteHost = function(requestMessage) {
+            var http = new XMLHttpRequest();
+            http.open("POST", this.url, true);
+
+            http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            http.setRequestHeader("Content-length", requestMessage.length);
+            http.setRequestHeader("Connection", "close");
+
+            http.onreadystatechange = function() {
+                if(http.readyState == 4 && http.status == 200) {
+                    console.log(http.responseText);
+                }
+            }
+            http.send(requestMessage);
+        }
+    }
+    var rpcClient = new jsonRpcClient("http://localhost/jsonrpc/sample/server/");
+    // rpc call with positional parameters: 
+    var rpc = new jsonRpc("subtract",[42,23]);
+    var rpc1 = new jsonRpc("subtract",[23,42]);
+    // rpc call with named parameters:
+    var rpc2 = new jsonRpc("add",{bValue:23,aValue:42});
+    var rpc3 = new jsonRpc("add",{aValue:42,bValue:23});
+    // rpc call with named parameters:
+    var rpc4 = new jsonRpc("subtract",[42,23],true);
+    // rpc call of non-existent method:
+    var rpc5 = new jsonRpc("adddd",{bValue:10,aValue:12});
+    var rpc6 = new jsonRpc("adddd",[42,23]);
+    // rpc call with invalid JSON:
+    rpcClient.callRemoteHost("{\"jsonrpc\": \"2.0\", \"method\": \"foobar, \"params\": \"bar\", \"baz]");
+    var rpc7 = new jsonRpc(1,"bar");
+
+    rpcClient.call(rpc);
+    rpcClient.call(rpc1);
+    rpcClient.call(rpc2);
+    rpcClient.call(rpc3);
+    rpcClient.call(rpc4);
+    rpcClient.call(rpc5);
+    rpcClient.call(rpc6);
+    rpcClient.call(rpc7);
+
+    // batch requests
+
+    //batch invalid json
+    rpcClient.callRemoteHost("[ {\"jsonrpc\": \"2.0\", \"method\": \"sum\", \"params\": [1,2,4], \"id\": \"1\"},{\"jsonrpc\": \"2.0\", \"method\" ]");
+    //rpc call with an empty Array:
+    rpcClient.callRemoteHost(JSON.stringify(new Array()));
+    //rpc call with an invalid Batch (but not empty):
+    rpcClient.callRemoteHost(JSON.stringify(new Array(1)));
+    //rpc call with invalid Batch:
+    rpcClient.callRemoteHost(JSON.stringify(new Array(1,2,3)));
+    //rpc call Batch:
+    rpcClient.callRemoteHost(
+        JSON.stringify(
+            new Array(
+                    new jsonRpc("add",[1,2]).request,
+                    new jsonRpc("add",[7,3],true).request,
+                    new jsonRpc("subtract",[42,23]).request,
+                    {foo:"boo"},
+                    new jsonRpc("foo.get",{bValue:23,aValue:42}).request,
+                    new jsonRpc("add",[42,23]).request
+            )
+        )
+    );
+    //rpc call Batch (all notifications):
+    rpcClient.callRemoteHost(
+        JSON.stringify(
+            new Array(
+                    new jsonRpc("add",[1,2],true).request,
+                    new jsonRpc("add",[7,3],true).request
+            )
+        )
+    );
+</script>
+
+</body>
+</html>

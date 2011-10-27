@@ -12,6 +12,10 @@ class MathServiceImpl extends JsonRpcService {
 	public function subtract($aValue,$bValue) {
 		return $aValue-$bValue;
 	}
+    /** @JsonRpcMethod ( request_login = true ) */
+    public function something() {
+        return array('protected');
+    }
 	public function notCallableByRpcAlthoughItsPublic($name) {
 		return $name;
 	}

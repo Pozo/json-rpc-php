@@ -19,15 +19,13 @@ class JsonRpcClient {
 		}
 	}
 	public function callBatch($rpcRequestList) {
-		if($rpcRequestList instanceof ObjectList) {
-			$rpcBatchArray = array();
-			foreach($rpcRequestList as $rpcRequest) {
-				if($rpcRequest instanceof RpcRequest) {
-					array_push($rpcBatchArray, $rpcRequest->getRpcRequestObject());
-				}
-			}
-			return $this->httpRequest($rpcBatchArray);
-		}
+        $rpcBatchArray = array();
+        foreach($rpcRequestList as $rpcRequest) {
+            if($rpcRequest instanceof RpcRequest) {
+                array_push($rpcBatchArray, $rpcRequest->getRpcRequestObject());
+            }
+        }
+        return $this->httpRequest($rpcBatchArray);
 	}
 	private function httpRequest($rpcBatchArray) {
 		$curlHandler = curl_init();

@@ -1,6 +1,10 @@
 <?php
 function __autoload($className) {
-	include_once($className.".php");
+    if(strstr($className,'Exception')) {
+        include_once("JsonRpcExceptions.php");
+    } else {
+        include_once($className.".php");
+    }
 }
 
 class JsonRpcServer {
@@ -11,10 +15,10 @@ class JsonRpcServer {
 
 	function __construct($postRequest) {
 		$this->_requestText = $postRequest;
-		$this->_listOfCallableServices = new ObjectList();
+		$this->_listOfCallableServices = array();
 	}
 	public function addService($classInstance) {
-		$this->_listOfCallableServices->add($classInstance);
+        array_push($this->_listOfCallableServices, $classInstance);
 	}
 	public function processingRequests() {
 		try {
@@ -109,11 +113,12 @@ class JsonRpcServer {
 			   && strncmp($reserved = "rpc.",$requestMethod,strlen($reserved)));
 	}
 	protected function isMethodAvailable($requestObject) {
-		foreach($this->_listOfCallableServices as $service) {
-			if($needleKey = array_key_exists($requestObject->method, $service->getCallableMethodNames())) {
-				return $this->_listOfCallableServices->get($needleKey);
+        $length = count($this->_listOfCallableServices);
+        for($i=0;$i<$length;$i++) {
+			if(array_key_exists($requestObject->method, $this->_listOfCallableServices[$i]->getCallableMethodNames())) {
+    			return $this->_listOfCallableServices[$i];
 			}
-		}
+        }
 		throw new JsonRpcMethodNotFoundException();
 	}
 	private function validateAndSortParameters($methodOwnerService, $requestObject) {
