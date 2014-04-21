@@ -46,7 +46,7 @@ class JsonRpcClient {
 
         $response = curl_exec($curlHandler);
         if(!$response) {
-          throw new Exception(curl_error($curlHandler), curl_errno($curlHandler));
+          throw new Exception('Curl error: ' . curl_error($curlHandler), curl_errno($curlHandler));
         }
         curl_close($curlHandler);
         $json_response = json_decode($response);
@@ -79,4 +79,3 @@ class JsonRpcClient {
         return $json_response;
 	}
 }
-?>
